@@ -13,6 +13,8 @@ public interface BootcampEntityMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
     @Mapping(source = "description", target = "description")
+    @Mapping(source = "launchDate", target = "launchDate")
+    @Mapping(source = "durationWeeks", target = "durationWeeks")
     Bootcamp toModel(BootcampEntity entity);
     BootcampEntity toEntity(Bootcamp bootcamp);
 }
