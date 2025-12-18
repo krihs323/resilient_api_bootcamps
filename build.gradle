@@ -1,0 +1,90 @@
+plugins {
+	id 'java'
+    id 'org.springframework.boot' version '3.5.4'
+	id 'io.spring.dependency-management' version '1.1.6'
+    id 'jacoco'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('springCloudVersion', "2023.0.4")
+}
+
+test {
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test // El reporte se genera solo después de correr los tests
+
+    reports {
+        xml.required = true
+        html.required = true
+        // Ubicación personalizada (opcional)
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco')
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "**/application/**",
+                    "**/domain/api/**",
+                    "**/domain/spi/**",
+                    "**/infrastructure/configuration/**",
+                    "**/infrastructure/adapters/**",
+                    "**/infrastructure/documentation/**",
+                    "**/infrastructure/entrypoints/mapper/**",
+                    "**/infrastructure/util/mapper/**",
+                    "**/exceptions/**",
+            ])
+        }))
+    }
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+	//implementation 'io.github.resilience4j:resilience4j-spring-boot2:2.2.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.5'
+    //implementation 'org.springdoc:springdoc-openapi-webflux-ui:1.8.0'
+    //implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.5.0'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+	implementation 'io.github.resilience4j:resilience4j-reactor:2.2.0'
+	implementation 'io.github.resilience4j:resilience4j-retry'
+	implementation 'io.github.resilience4j:resilience4j-bulkhead'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+    runtimeOnly 'io.asyncer:r2dbc-mysql'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+	implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
