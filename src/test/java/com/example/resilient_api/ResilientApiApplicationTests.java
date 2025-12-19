@@ -101,7 +101,7 @@ class ResilientApiApplicationTests {
                 .build();
 
         PageResponse<BootcampCapacitiesReportDto> pageResponse = createMockPageResponse();
-        when(bootcampServicePort.listCapacitiesPage(anyInt(), anyInt(), anyString(), anyString(), anyString()))
+        when(bootcampServicePort.listBootcampsPage(anyInt(), anyInt(), anyString(), anyString(), anyString()))
                 .thenReturn(Mono.just(pageResponse));
 
         // WHEN

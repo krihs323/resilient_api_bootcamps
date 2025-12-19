@@ -113,7 +113,7 @@ public class BootcampHandlerImpl {
     @Operation(parameters = {
             @Parameter(name = "page", in = ParameterIn.QUERY, example = "0", description = "Número de página"),
             @Parameter(name = "size", in = ParameterIn.QUERY, example = "10", description = "Tamaño de la pàgina"),
-            @Parameter(name = "sortBy", in = ParameterIn.QUERY, example = "name", description = "Ordenar por"),
+            @Parameter(name = "sortBy", in = ParameterIn.QUERY, example = "name", description = "Ordenar por name/cant"),
             @Parameter(name = "sortDir", in = ParameterIn.QUERY, example = "ASC", description = "Dirección ASC/DESC")
     })
     public Mono<ServerResponse> listBootcamp(ServerRequest request) {
@@ -124,9 +124,8 @@ public class BootcampHandlerImpl {
         int size = Integer.parseInt(request.queryParam("size").orElse("10"));
         String sortBy = request.queryParam("sortBy").orElse("name");
         String sortDir = request.queryParam("sortDir").orElse("ASC");
-        Mono<PageResponse<BootcampCapacitiesReportDto>> resultMono = bootcampServicePort.listCapacitiesPage(page,  size,  sortBy,  sortDir, messageId);
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(resultMono, PageResponse.class);
-
+        Mono<PageResponse<BootcampCapacitiesReportDto>> resultMono = bootcampServicePort.listBootcampsPage(page,  size,  sortBy,  sortDir, messageId);
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(resultMono, Object.class);
     }
 
     private Mono<ServerResponse> buildErrorResponse(HttpStatus httpStatus, String identifier, TechnicalMessage error,

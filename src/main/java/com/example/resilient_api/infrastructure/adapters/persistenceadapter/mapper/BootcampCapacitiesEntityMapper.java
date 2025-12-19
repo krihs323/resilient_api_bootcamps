@@ -11,8 +11,7 @@ import org.mapstruct.ReportingPolicy;
         unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface BootcampCapacitiesEntityMapper {
 
-    @Mapping(source = "id_bootcamp", target = "id_bootcamp")// dominio es target, entidad es fuente
+    @Mapping(source = "idBootcamp", target = "idBootcamp")// dominio es target, entidad es fuente
     @Mapping(source = "idCapacity", target = "idCapacity")// dominio es target, entidad es fuente
     BootcampCapacty toModel(BootcampCapacitiesEntity entity);
-    //BootcampEntity toEntity(Bootcamp bootcamp);
 }

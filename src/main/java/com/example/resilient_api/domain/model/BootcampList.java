@@ -3,15 +3,15 @@ package com.example.resilient_api.domain.model;
 public class BootcampList {
 
     String name;
-    Long cantTechnologies;
+    Long cantCapacities;
 
 
     public BootcampList() {
     }
 
-    public BootcampList(String name, Long cantTechnologies) {
+    public BootcampList(String name, Long cantCapacities) {
         this.name = name;
-        this.cantTechnologies = cantTechnologies;
+        this.cantCapacities = cantCapacities;
     }
 
     public String getName() {
@@ -22,11 +22,11 @@ public class BootcampList {
         this.name = name;
     }
 
-    public Long getCantTechnologies() {
-        return cantTechnologies;
+    public Long getcantCapacities() {
+        return cantCapacities;
     }
 
-    public void setCantTechnologies(Long cantTechnologies) {
-        this.cantTechnologies = cantTechnologies;
+    public void setcantCapacities(Long cantCapacities) {
+        this.cantCapacities = cantCapacities;
     }
 }

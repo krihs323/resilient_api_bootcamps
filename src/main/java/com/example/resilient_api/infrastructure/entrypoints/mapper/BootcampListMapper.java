@@ -12,7 +12,7 @@ import org.mapstruct.ReportingPolicy;
 public interface BootcampListMapper {
 
     @Mapping(source = "name", target = "name")
-    @Mapping(source = "cantTechnologies", target = "cantTechnologies")
+    @Mapping(source = "cantCapacities", target = "cantCapacities")
     BootcampCapacitiesReportDto bootcampListToBootcampListDTO(BootcampList bootcampList);
 
     BootcampList bootcampListDTOToBootcampList(BootcampCapacitiesReportDto bootcampCapacitiesReportDto);

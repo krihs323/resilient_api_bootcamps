@@ -9,6 +9,4 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface BootcampRepository extends ReactiveCrudRepository<BootcampEntity, Long> {
     Mono<BootcampEntity> findByName(String name);
-
-
 }

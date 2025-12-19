@@ -10,9 +10,6 @@ import reactor.core.publisher.Mono;
 public interface BootcampServicePort {
     Mono<Bootcamp> registerBootcamp(Bootcamp bootcamp, String messageId);
 
-    Mono<PageResponse<BootcampCapacitiesReportDto>> listCapacitiesPage(int page, int size, String sortBy, String sortDir, String messageId);
-
-    Flux<BootcampList> listCapacities(int page, int size, String sortBy, String sortDir, String messageId);
-
+    Mono<PageResponse<BootcampCapacitiesReportDto>> listBootcampsPage(int page, int size, String sortBy, String sortDir, String messageId);
 
 }

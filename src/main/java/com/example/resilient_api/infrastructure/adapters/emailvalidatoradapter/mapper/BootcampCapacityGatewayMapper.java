@@ -11,7 +11,7 @@ import org.mapstruct.ReportingPolicy;
         unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface BootcampCapacityGatewayMapper {
 
-    @Mapping(source = "id_bootcamp", target = "idBootcamp")
+    @Mapping(source = "idBootcamp", target = "idBootcamp")
     @Mapping(source = "idCapacity", target = "idCapacity")
     BootcampCapacityDTO toDTO(BootcampCapacty bootcampCapacty);
 }

@@ -1,29 +1,31 @@
 package com.example.resilient_api.domain.usecase;
 
-import com.example.resilient_api.domain.constants.Constants;
 import com.example.resilient_api.domain.enums.TechnicalMessage;
 import com.example.resilient_api.domain.exceptions.BusinessException;
 import com.example.resilient_api.domain.model.*;
 import com.example.resilient_api.domain.spi.CapacityGateway;
 import com.example.resilient_api.domain.spi.BootcampPersistencePort;
 import com.example.resilient_api.domain.api.BootcampServicePort;
-import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto.BootcampCapacitiesDTO;
+import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto.BootcampCapacitiesResponse;
 import com.example.resilient_api.infrastructure.entrypoints.dto.BootcampCapacitiesReportDto;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class BootcampUseCase implements BootcampServicePort {
 
     private final BootcampPersistencePort bootcampPersistencePort;
-    private final CapacityGateway validatorGateway;
+    private final CapacityGateway capacityGateway;
 
-    public BootcampUseCase(BootcampPersistencePort bootcampPersistencePort, CapacityGateway validatorGateway) {
+
+    public BootcampUseCase(BootcampPersistencePort bootcampPersistencePort, CapacityGateway capacityGateway) {
         this.bootcampPersistencePort = bootcampPersistencePort;
-        this.validatorGateway = validatorGateway;
+        this.capacityGateway = capacityGateway;
     }
 
     @Override
@@ -36,45 +38,71 @@ public class BootcampUseCase implements BootcampServicePort {
                 .flatMap(savedBootcamp -> saveCapacities(savedBootcamp.id(), bootcamp, messageId)
                         .then(Mono.just(savedBootcamp))
                 );
-
-//          .flatMap(savedBootcamp -> saveCapacities(savedBootcamp.id(), bootcamp, messageId)
-//                .flatMap(validationResult -> {
-//                    // 4. Validar el resultado del servicio externo
-//                    if (Constants.DELIVERABLE.equalsIgnoreCase(validationResult.deliverability())) {
-//                        return Mono.just(savedBootcamp);
-//                    } else {
-//                        // Si falla la validación externa, podrías necesitar compensar (borrar el bootcamp)
-//                        // o simplemente lanzar el error.
-//                        return Mono.error(new BusinessException(TechnicalMessage.INVALID_EMAIL));
-//                    }
-//                })
-//        );
-
-
     }
 
 
     @Override
-    public Mono<PageResponse<BootcampCapacitiesReportDto>> listCapacitiesPage(int page, int size, String sortBy, String sortDir, String messageId) {
-        var data = bootcampPersistencePort.listCapacitiesPage(page, size, sortBy, sortDir, messageId).collectList();
-        var total = bootcampPersistencePort.countGroupedCapacities();
+    public Mono<PageResponse<BootcampCapacitiesReportDto>> listBootcampsPage(int page, int size, String sortBy, String sortDir, String messageId) {
+        Mono<Long> total = bootcampPersistencePort.countBootcamps();
 
-        return Mono.zip(data, total)
-                .map(tuple -> new PageResponse<>(
-                        tuple.getT1(),
-                        tuple.getT2(),
-                        page,
-                        size
-                ));
+        //Obtenemos los bootcamps como una lista
+        Mono<List<Bootcamp>> bootcampsMono = bootcampPersistencePort.listBootcampsPage(page, size, sortBy, sortDir, messageId)
+                .collectList()
+                .doOnNext(list -> {
+                    log.info("DEBUG - Lista de Bootcamps recuperada:");
+                    list.forEach(bootcamp -> log.info(" > " + bootcamp));
+                    log.info("Total elementos en página: " + list.size());
+                });
+
+        //Obtenemos todas las capacidades y las agrupamos por idBootcamp en un Map
+        // Esto optimiza la búsqueda: K = idBootcamp, V = cantidad de ocurrencias
+        Mono<Map<Long, Long>> capacitiesCountMapMono = capacityGateway.getAllCapacities(messageId)
+                .filter(cap -> cap.idBootcamp() != null)
+                .collect(Collectors.groupingBy(
+                        BootcampCapacitiesResponse::idBootcamp,
+                        Collectors.counting()
+                )).doOnNext(list -> {
+                    log.info("DEBUG - Lista de Bootcamps recuperada:");
+                    log.info(" > " + list);
+                    log.info("Total elementos en página: " + list.size());
+                });
+
+        //Combinamos ambos Monos y transformamos
+        return Mono.zip(bootcampsMono, capacitiesCountMapMono, total)
+                .map(tuple -> {
+                    List<Bootcamp> bootcamps = tuple.getT1();
+                    Map<Long, Long> countsMap = tuple.getT2();
+                    Long totalBootcamps = tuple.getT3();
+
+                    // Transformamos la lista de Bootcamps a BootcampReportDTO
+                    List<BootcampCapacitiesReportDto> content = bootcamps.stream()
+                            .map(b -> new BootcampCapacitiesReportDto(
+                                    b.name(),
+                                    countsMap.getOrDefault(b.id(), 0L)
+                            ))
+                            .sorted((o1, o2) -> {
+                                // Comparador dinámico
+                                if ("DESC".equalsIgnoreCase(sortBy)) {
+                                    return Long.compare(o2.getCantCapacities(), o1.getCantCapacities()); // Mayor a menor
+                                } else {
+                                    return Long.compare(o1.getCantCapacities(), o2.getCantCapacities()); // Menor a mayor
+                                }
+                            })
+                            .toList();
+                    // Retornamos el objeto de paginación
+                    return new PageResponse<>(
+                            content,
+                            totalBootcamps,
+                            page,
+                            size
+                    );
+                });
+
     }
 
-    @Override
-    public Flux<BootcampList> listCapacities(int page, int size, String sortBy, String sortDir, String messageId) {
-        return bootcampPersistencePort.findCapabilitiesOrderedByName(page, size, sortBy, sortDir, messageId);
-    }
 
     private Mono<CapacityBootcampSaveResult> saveCapacities(Long idBootcamp, Bootcamp bootcamp, String messageId) {
-        return validatorGateway.saveCapacities(idBootcamp, bootcamp, messageId)
+        return capacityGateway.saveCapacities(idBootcamp, bootcamp, messageId)
                 .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.INVALID_EMAIL)));
     }
 

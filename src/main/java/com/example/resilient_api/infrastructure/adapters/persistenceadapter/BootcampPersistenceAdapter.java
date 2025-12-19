@@ -1,24 +1,19 @@
 package com.example.resilient_api.infrastructure.adapters.persistenceadapter;
 
 import com.example.resilient_api.domain.model.Bootcamp;
-import com.example.resilient_api.domain.model.BootcampCapacty;
-import com.example.resilient_api.domain.model.BootcampList;
 import com.example.resilient_api.domain.spi.BootcampPersistencePort;
-import com.example.resilient_api.infrastructure.adapters.persistenceadapter.entity.BootcampCapacitiesEntity;
+import com.example.resilient_api.infrastructure.adapters.persistenceadapter.entity.BootcampEntity;
 import com.example.resilient_api.infrastructure.adapters.persistenceadapter.mapper.BootcampCapacitiesEntityMapper;
 import com.example.resilient_api.infrastructure.adapters.persistenceadapter.mapper.BootcampEntityMapper;
 import com.example.resilient_api.infrastructure.adapters.persistenceadapter.repository.BootcampRepository;
 import com.example.resilient_api.infrastructure.adapters.persistenceadapter.repository.BootcampCapacitiesRepository;
-import com.example.resilient_api.infrastructure.entrypoints.dto.BootcampCapacitiesReportDto;
 import com.example.resilient_api.infrastructure.entrypoints.mapper.BootcampListMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
 
 @AllArgsConstructor
 @Slf4j
@@ -50,50 +45,39 @@ public class BootcampPersistenceAdapter implements BootcampPersistencePort {
 
 
     @Override
-    public Flux<BootcampCapacitiesReportDto> listCapacitiesPage(int page, int size, String sortBy, String sortDir, String messageId) {
+    public Flux<Bootcamp> listBootcampsPage(int page, int size, String sortBy, String sortDir, String messageId) {
+
+        String orderBy = "ORDER BY";
+        if(!sortBy.equalsIgnoreCase("name")){
+            orderBy = "";
+            sortBy = "";
+            sortDir = "";
+        }
 
         String sql = """
-            select capacities.description as name, count(capacities.id) as cantTechnologies from capacities_x_tecnologies inner join capacities on\s
-                            capacities_x_tecnologies.id_bootcamp  = capacities.id
-                            GROUP by capacities.id
-                            ORDER BY %s %s
+            select id, name, description, launch_date, duration_weeks
+            FROM bootcamps
+            %S %s %s
             LIMIT :limit OFFSET :offset
-            """.formatted(sortBy, sortDir);;
+            """.formatted(orderBy, sortBy, sortDir);
         return databaseClient.sql(sql)
                 .bind("limit", size )
                 .bind("offset", page)
-                .map((row, meta) -> new BootcampCapacitiesReportDto(
-                        row.get("name", String.class),
-                        row.get("cantTechnologies", Long.class)
-                ))
-                .all();
+                .map((row, meta) -> {
+                    BootcampEntity bootcamp = new BootcampEntity();
+                    bootcamp.setId(row.get("id", Long.class));
+                    bootcamp.setName(row.get("name", String.class));
+                    bootcamp.setDescription(row.get("description", String.class));
+                    bootcamp.setLaunchDate(row.get("launch_date", LocalDate.class));
+                    bootcamp.setDurationWeeks(row.get("duration_weeks", Integer.class));
+                    return bootcamp;
+                })
+                .all().map(bootcampEntityMapper::toModel);
     }
 
     @Override
-    public Mono<Long> countGroupedCapacities() {
-        return bootcampCapacitiesRepository.countGroupedCapacities();
-    }
-
-    @Override
-    public Flux<BootcampList> findCapabilitiesOrderedByName(
-            int offset,
-            int limit,
-            String sortBy, String sortDir, String messageId
-    ) {
-        String sql = """
-            select capacities.description as name, count(capacities.id) as cantTechnologies from capacities_x_tecnologies inner join capacities on\s
-                            capacities_x_tecnologies.id_bootcamp  = capacities.id
-                            GROUP by capacities.id
-            LIMIT :limit OFFSET :offset
-            """;
-        return databaseClient.sql(sql)
-                .bind("limit", limit)
-                .bind("offset", offset)
-                .map((row, meta) -> new BootcampList(
-                        row.get("name", String.class),
-                        row.get("cantTechnologies", Long.class)
-                ))
-                .all();
+    public Mono<Long> countBootcamps() {
+        return bootcampRepository.count();
     }
 
 }

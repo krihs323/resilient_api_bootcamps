@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class BootcampCapacitiesReportDto {
 
     private String name;
-    private Long cantTechnologies;
+    private Long cantCapacities;
 }

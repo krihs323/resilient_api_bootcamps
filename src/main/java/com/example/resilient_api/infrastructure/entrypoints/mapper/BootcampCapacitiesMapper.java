@@ -12,6 +12,6 @@ import org.mapstruct.ReportingPolicy;
 public interface BootcampCapacitiesMapper {
     @Mapping(source = "idCapacity", target = "idCapacity")
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "id_bootcamp", ignore = true)
+    @Mapping(target = "idBootcamp", ignore = true)
     BootcampCapacty toBootcampTechnology(CapacityDTO capacityDto);
 }

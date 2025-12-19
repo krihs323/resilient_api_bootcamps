@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table(name = "capacities_x_tecnologies")
@@ -13,6 +14,8 @@ import org.springframework.data.relational.core.mapping.Table;
 public class BootcampCapacitiesEntity {
     @Id
     private Long id;
+    @Column("id_capacity")
     private Long idCapacity;
-    private Long id_bootcamp;
+    @Column("id_bootcamp")
+    private Long idBootcamp;
 }

@@ -4,9 +4,11 @@ import com.example.resilient_api.domain.enums.TechnicalMessage;
 import com.example.resilient_api.domain.exceptions.BusinessException;
 import com.example.resilient_api.domain.exceptions.TechnicalException;
 import com.example.resilient_api.domain.model.Bootcamp;
+import com.example.resilient_api.domain.model.BootcampCapacty;
 import com.example.resilient_api.domain.model.CapacityBootcampSaveResult;
 import com.example.resilient_api.domain.spi.CapacityGateway;
 import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto.BootcampCapacitiesDTO;
+import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto.BootcampCapacitiesResponse;
 import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto.EmailValidationResponse;
 import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto.EmailValidatorProperties;
 import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.mapper.BootcampCapacitiesGatewayMapper;
@@ -24,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.concurrent.TimeoutException;
@@ -73,7 +76,6 @@ public class CapacityAdapter implements CapacityGateway {
     @CircuitBreaker(name = "emailValidator", fallbackMethod = "fallback")
     public Mono<CapacityBootcampSaveResult> saveCapacities(Long idBootcamp, Bootcamp bootcamp, String messageId) {
         log.info("Starting save bootcamp for bootcamp: {} with messageId: {}", bootcamp, messageId);
-        //Map de bootcamp a bootcampCapacities
         BootcampCapacitiesDTO bootcampCapacitiesDTO = bootcampCapacitiesGatewayMapper.toDTO(bootcamp);
         bootcampCapacitiesDTO.setIdBootcamp(idBootcamp);
         return webClient.post()
@@ -98,6 +100,30 @@ public class CapacityAdapter implements CapacityGateway {
                     return new CapacityBootcampSaveResult(status, "1");
                 })
                 .doOnTerminate(() -> log.info("Completed capacity saving process for messageId: {}", messageId))
+                .doOnError(e -> log.error("Error saving capacities for messageId: {}", messageId, e));
+    }
+
+
+    @Override
+    public Flux<BootcampCapacitiesResponse> getAllCapacities( String messageId) {
+        log.info("Starting get all bootcamp x capacities");
+
+        return webClient.get()
+                .uri(capacityPath + "capacity/bootcamp")
+                // Definir el tipo de contenido (JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .header("x-message-id", messageId)
+                .retrieve()
+                // Manejo de errores basado en códigos de estado HTTP
+                .onStatus(HttpStatusCode::is5xxServerError, response ->
+                        buildErrorResponse(response, TechnicalMessage.INTERNAL_ERROR_IN_ADAPTERS))
+                .onStatus(HttpStatusCode::is5xxServerError, response ->
+                        Mono.error(new RuntimeException("Error del servidor externo")))
+                // Mapear el cuerpo de la respuesta a un objeto
+                .bodyToFlux(BootcampCapacitiesResponse.class)
+                .doOnNext(response -> log.info("Received save API response for messageId {}: {}", messageId, response))
+                .doOnTerminate(() -> log.info("Completed bootcamps x capacities get process for messageId: {}", messageId))
                 .doOnError(e -> log.error("Error saving capacities for messageId: {}", messageId, e));
     }
 
