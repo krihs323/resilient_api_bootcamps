@@ -1,4 +1,4 @@
-package com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto;
+package com.example.resilient_api.infrastructure.entrypoints.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder(toBuilder = true)
-public class BootcampCapacityDTO {
-    Long idBootcamp;
-    Long idCapacity;
+public class TechnologyDTO {
+
+    private Long idTechnology;
+    private String name;
+    private String description;
 }

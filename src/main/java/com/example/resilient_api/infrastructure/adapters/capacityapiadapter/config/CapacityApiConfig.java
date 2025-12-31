@@ -1,6 +1,6 @@
-package com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.config;
+package com.example.resilient_api.infrastructure.adapters.capacityapiadapter.config;
 
-import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto.EmailValidatorProperties;
+import com.example.resilient_api.infrastructure.adapters.capacityapiadapter.dto.CapacityApiProperties;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.AllArgsConstructor;
@@ -20,9 +20,9 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Configuration
 @AllArgsConstructor
-public class EmailValidatorConfig {
+public class CapacityApiConfig {
 
-    private final EmailValidatorProperties properties;
+    private final CapacityApiProperties properties;
 
     @Bean
     public WebClient webClient() {

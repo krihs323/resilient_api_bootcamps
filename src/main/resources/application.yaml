@@ -33,7 +33,7 @@ management:
       enabled: false
     refresh:
       enabled: false
-email-validator:
+capacity-api:
   base-url: "${EMAIL_VALIDATOR_BASE_URL:https://emailvalidation.abstractapi.com/v1/}"
   api-key: "${EMAIL_VALIDATOR_API_KEY:3b1d9eb55cfe489dae5ab293b4234e0d}"
   timeout: "${EMAIL_VALIDATOR_TIMEOUT:500}"
@@ -43,7 +43,7 @@ resilience4j.circuitbreaker:
     default:
       register-health-indicator: true
   instances:
-    emailValidator:
+    capacityApiValidator:
       base-config: default
       failure-rate-threshold: 50
       slow-call-rate-threshold: 50
@@ -67,7 +67,7 @@ resilience4j:
         maxWaitDuration: 10000ms  # Duración máxima del backoff
         initialInterval: 500ms    # Intervalo inicial para el backoff
     instances:
-      emailValidatorRetry:
+      capacityApiRetry:
         maxAttempts: 5
         waitDuration: 1000ms
         enableExponentialBackoff: true
@@ -80,7 +80,7 @@ resilience4j:
         maxConcurrentCalls: 10
         maxWaitDuration: 500ms
     instances:
-      emailValidatorBulkhead:
+      capacityApiBulkhead:
         maxConcurrentCalls: 5
         maxWaitDuration: 1s
 springdoc:

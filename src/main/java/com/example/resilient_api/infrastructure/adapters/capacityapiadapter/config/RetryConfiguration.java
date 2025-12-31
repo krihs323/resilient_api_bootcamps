@@ -1,4 +1,4 @@
-package com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.config;
+package com.example.resilient_api.infrastructure.adapters.capacityapiadapter.config;
 
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
@@ -16,7 +16,7 @@ public class RetryConfiguration {
 
     @Bean
     public Retry retryPolicy() {
-        return retryRegistry.retry("emailValidatorRetry");
+        return retryRegistry.retry("capacityApiRetry");
     }
 
 }

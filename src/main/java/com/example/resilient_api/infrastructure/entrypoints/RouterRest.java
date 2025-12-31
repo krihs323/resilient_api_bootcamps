@@ -24,6 +24,10 @@ public class RouterRest {
                         bootcampHandler::listBootcamp,
                         ops -> ops.beanClass(BootcampHandlerImpl.class).beanMethod("listBootcamp")
                 )
+                .GET("/bootcamp/capacities-by-bootcamps/",
+                        bootcampHandler::listCapacitiesByBootcamps,
+                        ops -> ops.beanClass(BootcampHandlerImpl.class).beanMethod("listCapacitiesByBootcamps")
+                )
                 .build();
     }
 }

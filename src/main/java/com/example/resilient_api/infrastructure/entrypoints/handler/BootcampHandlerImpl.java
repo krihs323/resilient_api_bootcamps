@@ -8,8 +8,10 @@ import com.example.resilient_api.domain.exceptions.TechnicalException;
 import com.example.resilient_api.domain.model.PageResponse;
 import com.example.resilient_api.infrastructure.entrypoints.dto.BootcampDTO;
 import com.example.resilient_api.infrastructure.entrypoints.dto.BootcampCapacitiesReportDto;
+import com.example.resilient_api.infrastructure.entrypoints.dto.CapacityDTO;
 import com.example.resilient_api.infrastructure.entrypoints.mapper.BootcampListMapper;
 import com.example.resilient_api.infrastructure.entrypoints.mapper.BootcampMapper;
+import com.example.resilient_api.infrastructure.entrypoints.mapper.CapacitiesMapper;
 import com.example.resilient_api.infrastructure.entrypoints.util.APIResponse;
 import com.example.resilient_api.infrastructure.entrypoints.util.ErrorDTO;
 import com.example.resilient_api.infrastructure.validation.ObjectValidator;
@@ -27,6 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.context.Context;
 
@@ -44,6 +47,7 @@ public class BootcampHandlerImpl {
     private final BootcampMapper bootcampMapper;
     private final BootcampListMapper bootcampListMapper;
     private final ObjectValidator objectValidator;
+    private final CapacitiesMapper capacitiesMapper;
 
     @Operation(
             summary = "Registrar una nuevo bootcamp",
@@ -126,6 +130,19 @@ public class BootcampHandlerImpl {
         String sortDir = request.queryParam("sortDir").orElse("ASC");
         Mono<PageResponse<BootcampCapacitiesReportDto>> resultMono = bootcampServicePort.listBootcampsPage(page,  size,  sortBy,  sortDir, messageId);
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(resultMono, Object.class);
+    }
+
+    @Operation(parameters = {
+            @Parameter(name = "idBootcamp", in = ParameterIn.QUERY, example = "1", description = "id del bootcamp")
+    })
+    public Mono<ServerResponse> listCapacitiesByBootcamps(ServerRequest request) {
+        String messageId = getMessageId(request);
+        //Parametros
+        String idBootcampStr = request.queryParam("idBootcamp").orElse("0");
+        Long idBootcamp = Long.parseLong(idBootcampStr);
+        Flux<CapacityDTO> resultMono = bootcampServicePort.listCapacitiesByBootcamp(idBootcamp, messageId).map(capacitiesMapper::capacityTechnologiesToCapacityDTO);
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(resultMono, CapacityDTO.class);
+
     }
 
     private Mono<ServerResponse> buildErrorResponse(HttpStatus httpStatus, String identifier, TechnicalMessage error,

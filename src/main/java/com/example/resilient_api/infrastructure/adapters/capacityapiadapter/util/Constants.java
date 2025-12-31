@@ -1,4 +1,4 @@
-package com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.util;
+package com.example.resilient_api.infrastructure.adapters.capacityapiadapter.util;
 
 import lombok.experimental.UtilityClass;
 

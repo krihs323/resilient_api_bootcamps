@@ -6,10 +6,9 @@ import com.example.resilient_api.domain.model.*;
 import com.example.resilient_api.domain.spi.CapacityGateway;
 import com.example.resilient_api.domain.spi.BootcampPersistencePort;
 import com.example.resilient_api.domain.api.BootcampServicePort;
-import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto.BootcampCapacitiesResponse;
+import com.example.resilient_api.infrastructure.adapters.capacityapiadapter.dto.BootcampCapacitiesResponse;
 import com.example.resilient_api.infrastructure.entrypoints.dto.BootcampCapacitiesReportDto;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -97,7 +96,12 @@ public class BootcampUseCase implements BootcampServicePort {
                             size
                     );
                 });
+    }
 
+    @Override
+    public Flux<CapacityTechnologies> listCapacitiesByBootcamp(Long idBootcamp, String messageId) {
+        return capacityGateway.getCapacitiesByBootcamp(idBootcamp, messageId)
+                .doOnNext(x-> log.info("consulta: " +x.toString()));
     }
 
 

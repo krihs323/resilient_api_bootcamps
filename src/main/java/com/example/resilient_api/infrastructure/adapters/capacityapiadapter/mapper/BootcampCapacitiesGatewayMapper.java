@@ -1,7 +1,7 @@
-package com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.mapper;
+package com.example.resilient_api.infrastructure.adapters.capacityapiadapter.mapper;
 
 import com.example.resilient_api.domain.model.Bootcamp;
-import com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.dto.BootcampCapacitiesDTO;
+import com.example.resilient_api.infrastructure.adapters.capacityapiadapter.dto.BootcampCapacitiesDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;

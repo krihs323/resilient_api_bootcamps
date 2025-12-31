@@ -23,7 +23,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import java.util.List;
-import static com.example.resilient_api.infrastructure.adapters.emailvalidatoradapter.util.Constants.X_MESSAGE_ID;
+import static com.example.resilient_api.infrastructure.adapters.capacityapiadapter.util.Constants.X_MESSAGE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
