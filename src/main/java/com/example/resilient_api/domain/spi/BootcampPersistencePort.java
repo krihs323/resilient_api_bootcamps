@@ -9,5 +9,5 @@ public interface BootcampPersistencePort {
     Mono<Boolean> existByName(String name);
     Flux<Bootcamp> listBootcampsPage(int page, int size, String sortBy, String sortDir, String messageId);
     Mono<Long> countBootcamps();
-
+    Mono<Void> delete(Long id, String messageId);
 }

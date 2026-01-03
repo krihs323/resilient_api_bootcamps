@@ -104,6 +104,16 @@ public class BootcampUseCase implements BootcampServicePort {
                 .doOnNext(x-> log.info("consulta: " +x.toString()));
     }
 
+    @Override
+    public Mono<Void> deleteBootcamp(Long id, String messageId) {
+        //llamar a borrar capacidadess
+        return capacityGateway.deleteCapacityByBootcamp(id, messageId)
+                .flatMap(isDeleted ->
+                    //si se borra entonces borrar bootcamps
+                    bootcampPersistencePort.delete(id, messageId)
+                );
+    }
+
 
     private Mono<CapacityBootcampSaveResult> saveCapacities(Long idBootcamp, Bootcamp bootcamp, String messageId) {
         return capacityGateway.saveCapacities(idBootcamp, bootcamp, messageId)

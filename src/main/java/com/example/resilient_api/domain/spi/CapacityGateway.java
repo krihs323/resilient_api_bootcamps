@@ -10,10 +10,8 @@ import reactor.core.publisher.Mono;
 public interface CapacityGateway {
 
     Mono<CapacityBootcampSaveResult> validateName(String name, String messageId);
-
     Mono<CapacityBootcampSaveResult> saveCapacities(Long idBootcamp, Bootcamp bootcamp, String messageId);
-
     Flux<BootcampCapacitiesResponse> getAllCapacities(String messageId);
-
     Flux<CapacityTechnologies> getCapacitiesByBootcamp(Long idBootcamp, String messageId);
+    Mono<Boolean> deleteCapacityByBootcamp(Long id, String messageId);
 }

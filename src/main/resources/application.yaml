@@ -34,7 +34,7 @@ management:
     refresh:
       enabled: false
 capacity-api:
-  base-url: "${EMAIL_VALIDATOR_BASE_URL:https://emailvalidation.abstractapi.com/v1/}"
+  base-url: "${EMAIL_VALIDATOR_BASE_URL:http://localhost:8080/}"
   api-key: "${EMAIL_VALIDATOR_API_KEY:3b1d9eb55cfe489dae5ab293b4234e0d}"
   timeout: "${EMAIL_VALIDATOR_TIMEOUT:500}"
 resilience4j.circuitbreaker:

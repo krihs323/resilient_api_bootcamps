@@ -19,7 +19,6 @@ public class RouterRest {
                 .POST("/bootcamp",
                         bootcampHandler::createBootcamp,
                         ops -> ops.beanClass(BootcampHandlerImpl.class).beanMethod("createBootcamp"))
-
                 .GET("/bootcamp",
                         bootcampHandler::listBootcamp,
                         ops -> ops.beanClass(BootcampHandlerImpl.class).beanMethod("listBootcamp")
@@ -28,6 +27,9 @@ public class RouterRest {
                         bootcampHandler::listCapacitiesByBootcamps,
                         ops -> ops.beanClass(BootcampHandlerImpl.class).beanMethod("listCapacitiesByBootcamps")
                 )
+                .DELETE("/bootcamp/{id}",
+                        bootcampHandler::deleteBootcamp,
+                        ops -> ops.beanClass(BootcampHandlerImpl.class).beanMethod("deleteBootcamp"))
                 .build();
     }
 }

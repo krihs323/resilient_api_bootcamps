@@ -30,6 +30,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
 @Component
@@ -147,6 +148,36 @@ public class CapacityAdapter implements CapacityGateway {
                 .doOnNext(response -> log.info("Received API response for messageId {}: {}", messageId, response))
                 .doOnTerminate(() -> log.info("Completed bootcamps x capacities get process for messageId: {}", messageId))
                 .doOnError(e -> log.error("Error saving capacities for messageId: {}", messageId, e));
+    }
+
+    @Override
+    public Mono<Boolean> deleteCapacityByBootcamp(Long id, String messageId) {
+        log.info("Starting Bootcamp deletion for: {} with messageId: {}", id, messageId);
+
+        return webClient.delete() // Usamos el verbo DELETE
+                .uri(uriBuilder -> uriBuilder
+                        .path("capacity/{id}") // Asumiendo que el nombre va en el path o usa queryParam según tu API
+                        .queryParam("api_key", capacityApiProperties.getApiKey())
+                        .build(id))
+                .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .header(Messages.MSJ_HEADER.getValue(), messageId)
+                .retrieve()
+                .onStatus(HttpStatusCode::is5xxServerError, response ->
+                        buildErrorResponse(response, TechnicalMessage.INTERNAL_ERROR_IN_ADAPTERS))
+                .onStatus(status -> status.value() == 400, response ->
+                        response.bodyToMono(String.class)
+                                .flatMap(error -> Mono.error(new BusinessException(TechnicalMessage.CAPACITY_WITH_OTHER_BOOTCAMPS)))
+                )
+                .toBodilessEntity()
+                .map(response -> {
+                    // Esto devolverá true si el status es 200, 201, 204, etc.
+                    boolean isSuccess = response.getStatusCode().is2xxSuccessful();
+                    log.info("API CAPACITY response for messageId {}: Status {}", messageId, response.getStatusCode());
+                    return isSuccess;
+                })
+                .timeout(Duration.ofSeconds(15)) // Aumentamos el tiempo de espera a 15 segundos
+                .doOnError(e -> log.error("Timeout real detectado: {}", e.getMessage()));
     }
 
     public Mono<CapacityBootcampSaveResult> fallback(Throwable t) {

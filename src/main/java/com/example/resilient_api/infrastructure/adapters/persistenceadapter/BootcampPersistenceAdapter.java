@@ -80,4 +80,9 @@ public class BootcampPersistenceAdapter implements BootcampPersistencePort {
         return bootcampRepository.count();
     }
 
+    @Override
+    public Mono<Void> delete(Long id, String messageId) {
+        return bootcampRepository.deleteById(id);
+    }
+
 }

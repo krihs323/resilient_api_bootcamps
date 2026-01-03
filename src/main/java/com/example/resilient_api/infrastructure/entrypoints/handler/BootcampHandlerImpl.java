@@ -145,6 +145,36 @@ public class BootcampHandlerImpl {
 
     }
 
+    @Operation(parameters = {
+            @Parameter(name = "id", in = ParameterIn.QUERY, example = "1", description = "id del bootcamp")
+    })
+    public Mono<ServerResponse> deleteBootcamp(ServerRequest request) {
+        String messageId = getMessageId(request);
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return bootcampServicePort.deleteBootcamp(id, messageId).then(ServerResponse.noContent().build())
+                .onErrorResume(BusinessException.class, ex -> buildErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        messageId,
+                        TechnicalMessage.CAPACITY_WITH_OTHER_BOOTCAMPS,
+                        List.of(ErrorDTO.builder()
+                                .code(ex.getTechnicalMessage().getCode())
+                                .message(ex.getTechnicalMessage().getMessage())
+                                .param(ex.getTechnicalMessage().getParam())
+                                .build())))
+                .onErrorResume(ex -> {
+                    log.error("Unexpected error occurred for messageId: {}", messageId, ex);
+                    return buildErrorResponse(
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                            messageId,
+                            TechnicalMessage.INTERNAL_ERROR,
+                            List.of(ErrorDTO.builder()
+                                    .code(TechnicalMessage.INTERNAL_ERROR.getCode())
+                                    .message(TechnicalMessage.INTERNAL_ERROR.getMessage())
+                                    .build()));
+                });
+
+    }
+
     private Mono<ServerResponse> buildErrorResponse(HttpStatus httpStatus, String identifier, TechnicalMessage error,
                                                     List<ErrorDTO> errors) {
         return Mono.defer(() -> {
