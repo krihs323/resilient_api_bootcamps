@@ -19,5 +19,15 @@ public interface BootcampMapper {
     @Mapping(source = "bootcampCapacityList", target = "bootcampCapacityList")
     Bootcamp bootcampDTOToBootcamp(BootcampDTO bootcampDTO);
 
+    @Mapping(target = "id", source = "id")
+    @Mapping(source = "name", target = "name")
+    @Mapping(source = "description", target = "description")
+    @Mapping(source = "launchDate", target = "launchDate")
+    @Mapping(source = "durationWeeks", target = "durationWeeks")
+    @Mapping(source = "bootcampCapacityList", target = "bootcampCapacityList", ignore = true)
+    BootcampDTO bootcampToBootcampDTO(Bootcamp bootcamp);
+
+
+
 }
 

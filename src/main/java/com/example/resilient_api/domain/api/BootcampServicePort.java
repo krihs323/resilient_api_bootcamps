@@ -12,4 +12,5 @@ public interface BootcampServicePort {
     Mono<PageResponse<BootcampCapacitiesReportDto>> listBootcampsPage(int page, int size, String sortBy, String sortDir, String messageId);
     Flux<CapacityTechnologies> listCapacitiesByBootcamp(Long idBootcamp, String messageId);
     Mono<Void> deleteBootcamp(Long id, String messageId);
+    Mono<Bootcamp> getBootcamp(Long idBootcamp, String messageId);
 }

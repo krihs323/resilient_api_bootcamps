@@ -16,6 +16,8 @@ public enum TechnicalMessage {
     UNSUPPORTED_OPERATION("501", "Method not supported, please try again", ""),
     BOOTCAMP_CREATED("201", "Bootcamp created successfully", ""),
     ADAPTER_RESPONSE_NOT_FOUND("404-0", "invalid email, please verify", ""),
+    NOT_FOUND("404", "Recurso no encontrado", ""),
+    BOOTCAMP_NOT_FOUND("404", "Bootcamp no encontrado", ""),
     CAPACITY_WITH_OTHER_BOOTCAMPS("400", "Las capacidades del bootcamp estan asociadas a otros bootcamps", ""),
     BOOTCAMP_ALREADY_EXISTS("400","El bootcamp ya está registrado." ,"" ),
     BOOTCAMP_NAME_EMPTY("400","El nombre no debe ser vacio" ,"name" ),

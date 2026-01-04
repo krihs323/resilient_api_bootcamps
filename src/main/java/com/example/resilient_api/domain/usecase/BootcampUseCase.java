@@ -114,6 +114,12 @@ public class BootcampUseCase implements BootcampServicePort {
                 );
     }
 
+    @Override
+    public Mono<Bootcamp> getBootcamp(Long idBootcamp, String messageId) {
+        return bootcampPersistencePort.getBootcampById(idBootcamp, messageId)
+                .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.BOOTCAMP_NOT_FOUND)));
+    }
+
 
     private Mono<CapacityBootcampSaveResult> saveCapacities(Long idBootcamp, Bootcamp bootcamp, String messageId) {
         return capacityGateway.saveCapacities(idBootcamp, bootcamp, messageId)

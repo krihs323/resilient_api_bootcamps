@@ -175,6 +175,29 @@ public class BootcampHandlerImpl {
 
     }
 
+    @Operation(parameters = {
+            @Parameter(name = "id", in = ParameterIn.QUERY, example = "1", description = "id del bootcamp")
+    })
+    public Mono<ServerResponse> getBootcamp(ServerRequest request) {
+        String messageId = getMessageId(request);
+        //Parametros
+        Long id = Long.valueOf(request.pathVariable("id"));
+         return bootcampServicePort.getBootcamp(id, messageId).map(bootcampMapper::bootcampToBootcampDTO)
+                 .flatMap(savedBootcamp -> ServerResponse
+                         .status(HttpStatus.OK)
+                         .bodyValue(savedBootcamp))
+                 .onErrorResume(BusinessException.class, ex -> buildErrorResponse(
+                         HttpStatus.NOT_FOUND,
+                         messageId,
+                         TechnicalMessage.NOT_FOUND,
+                         List.of(ErrorDTO.builder()
+                                 .code(ex.getTechnicalMessage().getCode())
+                                 .message(ex.getTechnicalMessage().getMessage())
+                                 .param(ex.getTechnicalMessage().getParam())
+                                 .build())));
+
+    }
+
     private Mono<ServerResponse> buildErrorResponse(HttpStatus httpStatus, String identifier, TechnicalMessage error,
                                                     List<ErrorDTO> errors) {
         return Mono.defer(() -> {

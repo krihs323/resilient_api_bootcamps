@@ -85,4 +85,9 @@ public class BootcampPersistenceAdapter implements BootcampPersistencePort {
         return bootcampRepository.deleteById(id);
     }
 
+    @Override
+    public Mono<Bootcamp> getBootcampById(Long idBootcamp, String messageId) {
+        return bootcampRepository.findById(idBootcamp).map(bootcampEntityMapper::toModel);
+    }
+
 }
