@@ -14,6 +14,10 @@ import com.example.resilient_api.infrastructure.adapters.capacityapiadapter.dto.
 import com.example.resilient_api.infrastructure.adapters.capacityapiadapter.dto.CapacityApiProperties;
 import com.example.resilient_api.infrastructure.adapters.capacityapiadapter.mapper.BootcampCapacitiesGatewayMapper;
 import com.example.resilient_api.infrastructure.adapters.capacityapiadapter.util.Constants;
+import com.example.resilient_api.infrastructure.entrypoints.dto.BootcampDTO;
+import com.example.resilient_api.infrastructure.entrypoints.dto.CapacityDTO;
+import com.example.resilient_api.infrastructure.entrypoints.mapper.BootcampMapper;
+import com.example.resilient_api.infrastructure.entrypoints.mapper.CapacitiesMapper;
 import io.github.resilience4j.bulkhead.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.reactor.retry.RetryOperator;
@@ -31,6 +35,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 @Component
@@ -44,9 +49,14 @@ public class CapacityAdapter implements CapacityGateway {
     private final Bulkhead bulkhead;
 
     private final BootcampCapacitiesGatewayMapper bootcampCapacitiesGatewayMapper;
+    private final BootcampMapper bootcampMapper;
+    private final CapacitiesMapper capacitiesMapper;
 
     @Value("${capicity-api}")
     private String capacityPath;
+
+    @Value("${report-api}")
+    private String reportPath;
 
     @Override
     @CircuitBreaker(name = "capacityApiValidator", fallbackMethod = "fallback")
@@ -178,6 +188,26 @@ public class CapacityAdapter implements CapacityGateway {
                 })
                 .timeout(Duration.ofSeconds(15)) // Aumentamos el tiempo de espera a 15 segundos
                 .doOnError(e -> log.error("Timeout real detectado: {}", e.getMessage()));
+    }
+
+    @Override
+    public Mono<Void> saveReport(List<CapacityTechnologies> capacities, Bootcamp savedBootcamp, String messageId) {
+        log.info("Starting save bootcamp for bootcamp: {} with messageId: {}", savedBootcamp, messageId);
+        BootcampDTO bootcampDTO = bootcampMapper.bootcampToBootcampDTO(savedBootcamp);
+        List<CapacityDTO> capacityList = capacities.stream().map(capacitiesMapper::capacityTechnologiesToCapacityDTO).toList();
+        bootcampDTO.setBootcampCapacityList(capacityList);
+
+        return webClient.post()
+                .uri(reportPath + "report")
+                // Definir el tipo de contenido (JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .header(Messages.MSJ_HEADER.getValue(), messageId)
+                // Pasar el objeto en el cuerpo (se serializa automáticamente a JSON)
+                .bodyValue(bootcampDTO)
+                .retrieve()
+                .toBodilessEntity()
+                .then();
     }
 
     public Mono<CapacityBootcampSaveResult> fallback(Throwable t) {

@@ -7,6 +7,8 @@ import com.example.resilient_api.infrastructure.adapters.capacityapiadapter.dto.
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 public interface CapacityGateway {
 
     Mono<CapacityBootcampSaveResult> validateName(String name, String messageId);
@@ -14,4 +16,5 @@ public interface CapacityGateway {
     Flux<BootcampCapacitiesResponse> getAllCapacities(String messageId);
     Flux<CapacityTechnologies> getCapacitiesByBootcamp(Long idBootcamp, String messageId);
     Mono<Boolean> deleteCapacityByBootcamp(Long id, String messageId);
+    Mono<Void> saveReport(List<CapacityTechnologies> capacities, Bootcamp savedBootcamp, String messageId);
 }

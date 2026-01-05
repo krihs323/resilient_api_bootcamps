@@ -11,6 +11,7 @@ import com.example.resilient_api.infrastructure.entrypoints.dto.BootcampCapaciti
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,8 +35,23 @@ public class BootcampUseCase implements BootcampServicePort {
                 .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.BOOTCAMP_ALREADY_EXISTS)))
                 .flatMap(exists -> validateDuplicate(bootcamp.bootcampCapacityList()))
                 .flatMap(x-> bootcampPersistencePort.save(bootcamp))
-                .flatMap(savedBootcamp -> saveCapacities(savedBootcamp.id(), bootcamp, messageId)
-                        .then(Mono.just(savedBootcamp))
+                .flatMap(savedBootcamp ->
+                        // 1. Ejecutamos primero el guardado local
+                        saveCapacities(savedBootcamp.id(), bootcamp, messageId)
+                                .then(Mono.fromCallable(() -> {
+                                    // 2. Disparamos el proceso externo en segundo plano (Fire and Forget)
+                                    capacityGateway.getCapacitiesByBootcamp(savedBootcamp.id(), messageId)
+                                            .collectList()
+                                            .flatMap(capacities -> capacityGateway.saveReport(capacities, savedBootcamp, messageId))
+                                            .subscribeOn(Schedulers.boundedElastic())
+                                            .subscribe(
+                                                    success -> log.info("Async external save successful for bootcamp: {}", savedBootcamp.id()),
+                                                    error -> log.error("Async external save failed: ", error)
+                                            );
+                                    return savedBootcamp;
+                                }))
+                                // 3. Retornamos el bootcamp inmediatamente después de saveCapacities
+                                .thenReturn(savedBootcamp)
                 );
     }
 

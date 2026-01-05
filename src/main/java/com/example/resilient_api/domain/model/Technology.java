@@ -1,4 +1,6 @@
 package com.example.resilient_api.domain.model;
 
-public record Technology(Long id, String name, String description) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record Technology(@JsonProperty("idTechnology") Long id, String name, String description) {
 }
