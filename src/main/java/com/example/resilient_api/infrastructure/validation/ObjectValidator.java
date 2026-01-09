@@ -10,6 +10,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,14 +23,18 @@ public class ObjectValidator {
 
     private final Validator validator;
 
-    @SneakyThrows
-    public <T> T validate (T object) {
+    public <T> Mono<T> validate(T object) {
         Set<ConstraintViolation<T>> errors = validator.validate(object);
-        if(errors.isEmpty())
-            return object;
-        else {
-            String message = errors.stream().map(err -> err.getMessage()).collect(Collectors.joining(", "));
-            throw new CustomException(HttpStatus.BAD_REQUEST, message);
+        if (errors.isEmpty()) {
+            return Mono.just(object);
         }
+
+        String message = errors.stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+
+        log.error("Validation failed: {}", message);
+        // Emitimos la señal de error reactiva
+        return Mono.error(new CustomException(HttpStatus.BAD_REQUEST, message));
     }
 }

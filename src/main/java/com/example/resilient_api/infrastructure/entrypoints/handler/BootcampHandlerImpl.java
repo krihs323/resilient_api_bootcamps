@@ -66,7 +66,7 @@ public class BootcampHandlerImpl {
             })
     public Mono<ServerResponse> createBootcamp(ServerRequest request) {
         String messageId = getMessageId(request);
-        return request.bodyToMono(BootcampDTO.class).doOnNext(objectValidator::validate)
+        return request.bodyToMono(BootcampDTO.class).flatMap(objectValidator::validate)
                 .flatMap(bootcamp -> bootcampServicePort.registerBootcamp(bootcampMapper.bootcampDTOToBootcamp(bootcamp), messageId)
                         .doOnSuccess(savedBootcamp -> log.info("Bootcamp created successfully with messageId: {}", messageId))
                 )
